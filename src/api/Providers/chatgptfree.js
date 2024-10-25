@@ -1,4 +1,4 @@
-import { curlRequest } from "../curl";
+import fetch from "node-fetch";
 import { format_chat_to_prompt } from "../../classes/message";
 import { DEFAULT_HEADERS } from "../../helpers/headers";
 
@@ -29,16 +29,17 @@ export const ChatgptFreeProvider = {
     // get nonce
     let _nonce;
     let _response = "";
-    await curlRequest(
-      `${url}/`,
-      {
-        method: "GET",
-        headers: headers,
-      },
-      (response) => {
-        _response += response;
-      }
-    );
+
+    const initialResponse = await fetch(`${url}/`, { // Replaced curlRequest with fetch
+      method: "GET",
+      headers: headers,
+    });
+
+    if (!initialResponse.ok) {
+      throw new Error(`ChatGPTFree initial request failed with status ${initialResponse.status}`);
+    }
+
+    _response = await initialResponse.text();
 
     let result = _response.match(/data-nonce="(.*?)"/);
     if (result) {
@@ -66,40 +67,43 @@ export const ChatgptFreeProvider = {
     let buffer = "";
     let ended = false;
 
-    await curlRequest(
-      request_url,
-      {
-        method: "POST",
-        headers: headers,
-      },
-      (chunk) => {
-        if (ended) return;
+    const apiResponse = await fetch(request_url, { // Replaced curlRequest with fetch
+      method: "POST",
+      headers: headers,
+    });
 
-        let lines = chunk.split("\n");
-        for (let line of lines) {
-          line = line.trim();
-          if (line.startsWith("data: ")) {
-            line = line.substring(6);
-            if (line === "[DONE]") {
-              ended = true;
-              return;
-            }
-            try {
-              let json = JSON.parse(line);
-              let content = json["choices"][0]["delta"]?.content;
-              if (content) {
-                response += content;
-                stream_update(response);
-              }
-            } catch {
-              // ignore
-            }
-          } else if (line) {
-            buffer += line;
+    if (!apiResponse.ok) {
+      throw new Error(`ChatGPTFree API request failed with status ${apiResponse.status}`);
+    }
+
+    const reader = apiResponse.body;
+    for await (let chunk of reader) {
+      if (ended) return;
+
+      let lines = chunk.toString().split("\n");
+      for (let line of lines) {
+        line = line.trim();
+        if (line.startsWith("data: ")) {
+          line = line.substring(6);
+          if (line === "[DONE]") {
+            ended = true;
+            return;
           }
+          try {
+            let json = JSON.parse(line);
+            let content = json["choices"][0]["delta"]?.content;
+            if (content) {
+              response += content;
+              stream_update(response);
+            }
+          } catch {
+            // ignore
+          }
+        } else if (line) {
+          buffer += line;
         }
       }
-    );
+    }
 
     if (buffer) {
       try {

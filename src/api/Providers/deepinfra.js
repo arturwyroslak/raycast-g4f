@@ -4,7 +4,8 @@ import fs from "fs";
 import { messages_to_json } from "../../classes/message";
 import { getWebResult, web_search_mode, webSearchTool } from "../tools/web";
 import { codeInterpreterTool, getCodeInterpreterResult } from "../tools/code";
-import { getPreferenceValues } from "@raycast/api";
+// import { getPreferenceValues } from "@raycast/api";
+import { getPreferenceValues } from '../gpt'; // Updated import
 
 // Implementation ported from gpt4free DeepInfra provider.
 

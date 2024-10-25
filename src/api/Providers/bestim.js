@@ -1,5 +1,5 @@
+import fetch from "node-fetch";
 import { format_chat_to_prompt } from "../../classes/message";
-import { curlRequest } from "../curl";
 
 const api_url = "https://ai-chats.org/chat/send2/";
 const headers = {
@@ -40,26 +40,29 @@ export const BestIMProvider = {
 
     let response = "";
 
-    await curlRequest(
-      api_url,
-      {
-        method: "POST",
-        headers: headers,
-        body: JSON.stringify(payload),
-      },
-      (_chunk) => {
-        const str = _chunk.toString();
-        let lines = str.split("\n");
+    const res = await fetch(api_url, { // Replaced curlRequest with fetch
+      method: "POST",
+      headers: headers,
+      body: JSON.stringify(payload),
+    });
 
-        for (let i = 0; i < lines.length; i++) {
-          let line = lines[i];
-          if (line.startsWith("data: ")) {
-            let chunk = line.substring(6);
-            response += chunk;
-            stream_update(response);
-          }
+    if (!res.ok) {
+      throw new Error(`BestIM API request failed with status ${res.status}`);
+    }
+
+    const reader = res.body;
+    for await (let chunk of reader) {
+      const str = chunk.toString();
+      let lines = str.split("\n");
+
+      for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+        if (line.startsWith("data: ")) {
+          let chunk = line.substring(6);
+          response += chunk;
+          stream_update(response);
         }
       }
-    );
+    }
   },
 };
