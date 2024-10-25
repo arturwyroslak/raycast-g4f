@@ -13,8 +13,8 @@ import { DuckDuckGoProvider } from "./Providers/duckduckgo";
 import { BestIMProvider } from "./Providers/bestim";
 import { RocksProvider } from "./Providers/rocks";
 import { ChatgptFreeProvider } from "./Providers/chatgptfree";
-import { PizzaGPTProvider } from "./Providers/pizzagpt"; // Updated import
-import { MetaAIProvider } from "./Providers/metaAI";
+import { PizzaGPTProvider } from "./Providers/pizzagpt";
+import { MetaAIProvider } from "./Providers/metaAI"; // Updated import
 import { ReplicateProvider } from "./Providers/replicate";
 import { PhindProvider } from "./Providers/phind";
 import { GeminiProvider } from "./Providers/google_gemini";
