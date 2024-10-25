@@ -135,11 +135,21 @@ const startG4F = async () => {
   const apiInfo = await getCustomAPIInfo();
   const exe = await getG4FExecutablePath(apiInfo);
   const timeout_s = await getG4FTimeout(apiInfo);
-
-  const START_COMMAND = `export PATH="/opt/homebrew/bin:$PATH"; ( "${exe}" api ) & sleep ${timeout_s} ; kill -2 $!`;
   const dirPath = getSupportPath();
+  let command;
+
+  // Determine the appropriate command based on the operating system.  This is a simplification and might need further refinement.
+  if (process.platform === "darwin") {
+    command = `export PATH="/usr/local/bin:$PATH"; ( "${exe}" api ) & sleep ${timeout_s} ; kill -2 $!`;
+  } else if (process.platform === "linux") {
+    command = `( "${exe}" api ) & sleep ${timeout_s} ; kill -2 $!`;
+  } else {
+    command = `( "${exe}" api ) & sleep ${timeout_s} ; kill -2 $!`; //Fallback for other OS
+    console.warn("Unsupported operating system. Using fallback command.");
+  }
+
   try {
-    const child = exec(START_COMMAND, { cwd: dirPath });
+    const child = exec(command, { cwd: dirPath });
     console.log("G4F API Process ID:", child.pid);
     child.stderr.on("data", (data) => {
       console.log("g4f >", data);

@@ -149,3 +149,7 @@ export const get_options_from_info = (info, chatOptions = {}) => {
     provider: undefined,
   };
 };
+
+export const getApiList = () => {
+  return Object.keys(providers_info);
+};
