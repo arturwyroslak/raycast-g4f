@@ -8,7 +8,6 @@ import { Storage } from "../storage";
 import { messages_to_json } from "../../classes/message";
 import { sleep } from "../../helpers/helper";
 
-import { Form } from "@raycast/api";
 import { getSupportPath } from "../../helpers/helper";
 
 // constants
@@ -100,25 +99,15 @@ const getG4FModels = async () => {
   }
 };
 
-// get available models as dropdown component
-export const getG4FModelsComponent = async (apiInfo) => {
+// get available models as a configuration object
+export const getG4FModelsConfig = async (apiInfo) => {
   const models = await getG4FModels(apiInfo);
   const info = await getG4FModelInfo(apiInfo);
-  return (
-    <>
-      <Form.Dropdown id="g4f_model" title="G4F Model" defaultValue={info.model}>
-        {models.map((model) => {
-          return <Form.Dropdown.Item title={model.id} key={model.id} value={model.id} />;
-        })}
-      </Form.Dropdown>
-      <Form.TextField
-        id="g4f_provider"
-        title="G4F Provider"
-        info="(Optional) The provider to use in the API. The API will automatically select the best provider if this is not set."
-        defaultValue={info.provider}
-      />
-    </>
-  );
+  return {
+    models: models.map((model) => model.id),
+    selectedModel: info.model,
+    provider: info.provider,
+  };
 };
 
 // get custom API info from storage
